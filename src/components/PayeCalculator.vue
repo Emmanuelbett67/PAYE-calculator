@@ -143,8 +143,8 @@
   
   // Prevent form submission on Enter
   const handleEnterKey = (event) => {
-    event.preventDefault();  // Prevent the form from submitting
-    calculateDeductions();   // Call the calculation function
+    event.preventDefault();
+    calculateDeductions();  
   };
   </script>
   
