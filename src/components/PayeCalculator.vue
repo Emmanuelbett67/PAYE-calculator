@@ -60,7 +60,7 @@
                 <v-list-item>
                   <v-list-item-content>
                     <v-list-item-title
-                      ><strong>NHIF:</strong></v-list-item-title
+                      ><strong>NHIF/SHIF:</strong></v-list-item-title
                     >
                     <v-list-item-subtitle
                       >KSh
@@ -119,7 +119,7 @@
 
 <script setup>
 import { ref } from "vue";
-import BaseView from "@/components/containers/BaseView.vue";
+import BaseView from "@/components/containers/baseview.vue";
 import NumberFormatter from "@/components/NumberFormatter.vue";
 
 const grossSalary = ref(null);
@@ -128,46 +128,53 @@ const results = ref(null);
 
 // NHIF Deduction Rates
 const calculateNHIF = (salary) => {
-  const nhifBands = [
-    { max: 5999, rate: 150 },
-    { max: 7999, rate: 300 },
-    { max: 11999, rate: 400 },
-    { max: 14999, rate: 500 },
-    { max: 19999, rate: 600 },
-    { max: 24999, rate: 750 },
-    { max: 29999, rate: 850 },
-    { max: 34999, rate: 900 },
-    { max: 39999, rate: 950 },
-    { max: 44999, rate: 1000 },
-    { max: 49999, rate: 1100 },
-    { max: 59999, rate: 1200 },
-    { max: 69999, rate: 1300 },
-    { max: 79999, rate: 1400 },
-    { max: 89999, rate: 1500 },
-    { max: 99999, rate: 1600 },
-    { max: Infinity, rate: 1700 },
-  ];
-  return nhifBands.find((band) => salary <= band.max).rate;
+  if (salary <= 5999) return 150;
+  if (salary <= 7999) return 300;
+  if (salary <= 11999) return 400;
+  if (salary <= 14999) return 500;
+  if (salary <= 19999) return 600;
+  if (salary <= 24999) return 750;
+  if (salary <= 29999) return 850;
+  if (salary <= 34999) return 900;
+  if (salary <= 39999) return 950;
+  if (salary <= 44999) return 1000;
+  if (salary <= 49999) return 1100; // For salary of 50,000
+  return 1200; // For salary above 50,000
 };
+
 
 // PAYE Calculation
 const calculatePAYE = (salary) => {
   let paye = 0;
+  const personalRelief = 2400; // Fixed personal relief
+
   if (salary <= 24000) {
-    paye = salary * 0.1;
+    paye = salary * 0.1; // 10% on the first 24,000
   } else if (salary <= 32333) {
-    paye = 2400 + (salary - 24000) * 0.25;
+    paye = 2400 + (salary - 24000) * 0.25; // 25% on the next 8,333
   } else {
-    paye = 5358.25 + (salary - 32333) * 0.35;
+    paye = 2400 + 2083.25 + (salary - 32333) * 0.35; // 35% on the remaining
   }
-  return paye;
+
+  // Subtract personal relief from PAYE
+  paye = Math.max(0, paye - personalRelief); // Ensure PAYE doesn't go negative
+
+  return parseFloat(paye.toFixed(2)); // Round to 2 decimals
 };
 
+
+
 // Housing Levy Calculation
-const calculateHousingLevy = (salary) => salary * 0.015;
+const calculateHousingLevy = (salary) => {
+  return parseFloat((salary * 0.015).toFixed(2)); // 1.5%
+};
 
 // NSSF Deduction
-const calculateNSSF = (salary) => Math.min(salary * 0.06, 2160);
+const calculateNSSF = (salary) => {
+  const nssfRate = 0.06;
+  const nssfMax = 2160; // Capped at 2,160
+  return Math.min(salary * nssfRate, nssfMax);
+};
 
 // Main Calculation
 const calculateDeductions = () => {
@@ -200,6 +207,7 @@ const handleEnterKey = (event) => {
   margin-top: 1rem;
   font-weight: 600;
   border-radius: 8px;
+  
 }
 
 .v-subheader {
